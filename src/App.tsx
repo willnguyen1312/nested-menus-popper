@@ -1,26 +1,42 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
+import Popper from '@material-ui/core/Popper';
 
-function App() {
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    paper: {
+      border: '1px solid',
+      padding: theme.spacing(1),
+      backgroundColor: theme.palette.background.paper,
+    },
+  }),
+);
+
+export default function SimplePopper() {
+  const classes = useStyles();
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(anchorEl ? null : event.currentTarget);
+  };
+
+  const open = Boolean(anchorEl);
+  const id = open ? 'simple-popper' : undefined;
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{
+      width:'100vw',
+      height:'100vh',
+      display:'flex',
+      justifyContent:'center',
+      alignItems:'center'
+    }}>
+      <button aria-describedby={id} type="button" onClick={handleClick}>
+        Toggle Popper
+      </button>
+      <Popper id={id} open={open} anchorEl={anchorEl}>
+        <div className={classes.paper}>The content of the Popper.</div>
+      </Popper>
     </div>
   );
 }
-
-export default App;
