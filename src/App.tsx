@@ -1,15 +1,15 @@
-import React from 'react';
-import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
-import Popper from '@material-ui/core/Popper';
+import React from "react";
+import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
+
+import { Menu } from "./Menu";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     paper: {
-      border: '1px solid',
       padding: theme.spacing(1),
       backgroundColor: theme.palette.background.paper,
     },
-  }),
+  })
 );
 
 export default function SimplePopper() {
@@ -20,23 +20,50 @@ export default function SimplePopper() {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
-  const open = Boolean(anchorEl);
-  const id = open ? 'simple-popper' : undefined;
-
   return (
-    <div style={{
-      width:'100vw',
-      height:'100vh',
-      display:'flex',
-      justifyContent:'center',
-      alignItems:'center'
-    }}>
-      <button aria-describedby={id} type="button" onClick={handleClick}>
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        justifyContent: "flex-end",
+        alignItems: "center",
+      }}
+    >
+      <button type="button" onClick={handleClick}>
         Toggle Popper
       </button>
-      <Popper id={id} open={open} anchorEl={anchorEl}>
-        <div className={classes.paper}>The content of the Popper.</div>
-      </Popper>
+      <Menu anchorEl={anchorEl}>
+        <Menu.Item
+          clickable
+          render={({ anchorEl }) => {
+            return (
+              <div className={classes.paper}>
+                <>First content of the Popper</>
+                <Menu size="small" anchorEl={anchorEl} placement="left-end">
+                  <Menu.Item
+                    render={() => (
+                      <div className={classes.paper}>Nested content 1</div>
+                    )}
+                  />
+                  <Menu.Item
+                    render={() => (
+                      <div className={classes.paper}>Nested content 2</div>
+                    )}
+                  />
+                </Menu>
+              </div>
+            );
+          }}
+        />
+        <Menu.Item
+          render={() => (
+            <div className={classes.paper}>
+              <>Second content of the Popper</>
+            </div>
+          )}
+        />
+      </Menu>
     </div>
   );
 }
