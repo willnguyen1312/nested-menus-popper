@@ -3,9 +3,10 @@ import { noop } from "lodash-es";
 
 import { Popper, PopperPlacementType } from "@material-ui/core";
 
-const callAll = (...fns: any) => (...arg: any) => fns.forEach((fn: any) => {
-  fn && fn(...arg)
-});
+const callAll = (...fns: any) => (...arg: any) =>
+  fns.forEach((fn: any) => {
+    fn && fn(...arg);
+  });
 
 interface MenuContextType {
   anchorEle?: HTMLElement;
@@ -20,42 +21,57 @@ export const MenuTrigger: React.FC = ({ children }) => {
   const { setAnchorEle, anchorEle } = React.useContext(MenuContext);
 
   const handleOnclick = (event: Event) => {
-    setAnchorEle(anchorEle ? undefined : event.target as HTMLElement)
-  }
+      setAnchorEle(anchorEle ? undefined : (event.target as HTMLElement));
+  };
 
-  const childrenWithProps = React.Children.map(children, child => {
+  const childrenWithProps = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
       return React.cloneElement(child, {
-        onClick: callAll(handleOnclick, child.props.onClick)
-      })
+        onClick: callAll(handleOnclick, child.props.onClick),
+      });
     }
 
-    return undefined
-  })
+    return undefined;
+  });
 
-
-  return <>{childrenWithProps}</>
+  return <>{childrenWithProps}</>;
 };
 
 interface MenuItemProps {
-  onClick?: (event: React.MouseEvent | React.KeyboardEvent) => void
+  onClick?: (event: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
 export const MenuItem: React.FC<MenuItemProps> = ({ children, onClick }) => {
-  return <div tabIndex={0} role="menuitem" onClick={onClick} onKeyUp={event => {
-    if (event.key === 'Enter') {
-      onClick && onClick(event)
-    }
-  }}>{children}</div>;
+  return (
+    <div
+      tabIndex={0}
+      role="menuitem"
+      onClick={onClick}
+      onKeyUp={(event) => {
+        if (event.key === "Enter") {
+            onClick && onClick(event);
+        }
+      }}
+    >
+      {children}
+    </div>
+  );
 };
 
 export const Menu: React.FC = ({ children }) => {
   const [anchorEle, setAnchorEle] = React.useState<HTMLElement>();
+
+  const _setAnchorEle = (anchorEle?: HTMLElement) => {
+    setTimeout(() => {
+      setAnchorEle(anchorEle)
+    }, 0);
+  }
+
   return (
     <MenuContext.Provider
       value={{
         anchorEle,
-        setAnchorEle,
+        setAnchorEle: _setAnchorEle,
       }}
     >
       {children}
@@ -64,24 +80,61 @@ export const Menu: React.FC = ({ children }) => {
 };
 
 interface MenuContextProps {
-  placement?: PopperPlacementType
+  placement?: PopperPlacementType;
 }
 
-export const MenuContent: React.FC<MenuContextProps> = ({ children, placement = 'top-end' }) => {
-  const menuRef = React.useRef<HTMLDivElement>(null)
-  const { anchorEle } = React.useContext(MenuContext);
+export const MenuContent: React.FC<MenuContextProps> = ({
+  children,
+  placement = "top-end",
+}) => {
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const { anchorEle, setAnchorEle } = React.useContext(MenuContext);
 
   const open = Boolean(anchorEle);
 
   React.useEffect(() => {
     if (open) {
-      menuRef.current?.focus()
+      menuRef.current?.focus();
     }
-  }, [open])
-  
+  }, [open]);
+
+  React.useEffect(() => {
+    const clickEventHandler = (event: Event) => {
+      const menu = menuRef.current
+
+      if (menu && !menu.contains(event.target as Node)) {
+        setAnchorEle(undefined);
+      }
+    };
+
+
+    const keyupEventHandler = (event: KeyboardEvent) => {
+      const menu = menuRef.current
+
+      if (event.key === 'Enter' && menu && !menu.contains(event.target as Node)) {
+        setAnchorEle(undefined);
+      }
+    };
+
+    window.addEventListener("click", clickEventHandler);
+    window.addEventListener("keyup", keyupEventHandler);
+
+    return () => {
+      window.removeEventListener("click", clickEventHandler);
+      window.removeEventListener("keyup", keyupEventHandler);
+    };
+  }, [setAnchorEle]);
+
   return (
-    <Popper placement={placement} open={open} disablePortal anchorEl={anchorEle}>
-      <div tabIndex={-1} ref={menuRef} role="menu">{children}</div>
+    <Popper
+      placement={placement}
+      open={open}
+      disablePortal
+      anchorEl={anchorEle}
+    >
+      <div tabIndex={-1} ref={menuRef} role="menu">
+        {children}
+      </div>
     </Popper>
   );
 };
