@@ -13,7 +13,7 @@ export default function SimplePopper() {
     >
       <Menu>
         <MenuTrigger>
-          <button onClick={() => console.log(123)}>Toggle</button>
+          <button>Toggle</button>
         </MenuTrigger>
         <MenuContent>
           <MenuItem>
@@ -26,7 +26,7 @@ export default function SimplePopper() {
                 <h6>Hi there!!!</h6>
               </MenuItem>
             </MenuTrigger>
-            <MenuContent placement="left-start">
+            <MenuContent placement="left-end">
               <MenuItem>
                 <h6>Hi there nested 1</h6>
               </MenuItem>
@@ -36,7 +36,7 @@ export default function SimplePopper() {
                     <h6>Hi there there!!!</h6>
                   </MenuItem>
                 </MenuTrigger>
-                <MenuContent placement="left-start">
+                <MenuContent placement="left-end">
                   <MenuItem>
                     <h6>Hi there there nested 1</h6>
                   </MenuItem>
@@ -52,7 +52,7 @@ export default function SimplePopper() {
                     <h6>Hei there there!!!</h6>
                   </MenuItem>
                 </MenuTrigger>
-                <MenuContent placement="left-start">
+                <MenuContent placement="left-end">
                   <MenuItem>
                     <h6>Hei there there nested 1</h6>
                   </MenuItem>
@@ -70,7 +70,7 @@ export default function SimplePopper() {
                 <h6>Moi there!!!</h6>
               </MenuItem>
             </MenuTrigger>
-            <MenuContent placement="left-start">
+            <MenuContent placement="left-end">
               <MenuItem>
                 <h6>Moi there nested 1</h6>
               </MenuItem>

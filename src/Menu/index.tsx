@@ -1,5 +1,6 @@
 import React from "react";
 import { noop } from "lodash-es";
+import { useEvent } from "react-use";
 
 import { Popper, PopperPlacementType } from "@material-ui/core";
 
@@ -21,7 +22,7 @@ export const MenuTrigger: React.FC = ({ children }) => {
   const { setAnchorEle, anchorEle } = React.useContext(MenuContext);
 
   const handleOnclick = (event: Event) => {
-      setAnchorEle(anchorEle ? undefined : (event.target as HTMLElement));
+    setAnchorEle(anchorEle ? undefined : (event.target as HTMLElement));
   };
 
   const childrenWithProps = React.Children.map(children, (child) => {
@@ -49,7 +50,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({ children, onClick }) => {
       onClick={onClick}
       onKeyUp={(event) => {
         if (event.key === "Enter") {
-            onClick && onClick(event);
+          onClick && onClick(event);
         }
       }}
     >
@@ -61,11 +62,11 @@ export const MenuItem: React.FC<MenuItemProps> = ({ children, onClick }) => {
 export const Menu: React.FC = ({ children }) => {
   const [anchorEle, setAnchorEle] = React.useState<HTMLElement>();
 
-  const _setAnchorEle = (anchorEle?: HTMLElement) => {
+  const _setAnchorEle = React.useCallback((anchorEle?: HTMLElement) => {
     setTimeout(() => {
-      setAnchorEle(anchorEle)
+      setAnchorEle(anchorEle);
     }, 0);
-  }
+  }, []);
 
   return (
     <MenuContext.Provider
@@ -98,32 +99,21 @@ export const MenuContent: React.FC<MenuContextProps> = ({
     }
   }, [open]);
 
-  React.useEffect(() => {
-    const clickEventHandler = (event: Event) => {
-      const menu = menuRef.current
+  useEvent("click", (event) => {
+    const menu = menuRef.current;
 
-      if (menu && !menu.contains(event.target as Node)) {
-        setAnchorEle(undefined);
-      }
-    };
+    if (menu && !menu.contains(event.target as Node)) {
+      setAnchorEle(undefined);
+    }
+  });
 
+  useEvent("keyup", (event) => {
+    const menu = menuRef.current;
 
-    const keyupEventHandler = (event: KeyboardEvent) => {
-      const menu = menuRef.current
-
-      if (event.key === 'Enter' && menu && !menu.contains(event.target as Node)) {
-        setAnchorEle(undefined);
-      }
-    };
-
-    window.addEventListener("click", clickEventHandler);
-    window.addEventListener("keyup", keyupEventHandler);
-
-    return () => {
-      window.removeEventListener("click", clickEventHandler);
-      window.removeEventListener("keyup", keyupEventHandler);
-    };
-  }, [setAnchorEle]);
+    if (event.key === "Enter" && menu && !menu.contains(event.target as Node)) {
+      setAnchorEle(undefined);
+    }
+  });
 
   return (
     <Popper
