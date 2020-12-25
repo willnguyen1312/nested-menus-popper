@@ -1,113 +1,87 @@
-import React, { FC, useEffect, useRef, useState } from "react";
+import React from "react";
+import { noop } from "lodash-es";
 
-import Popper from "@material-ui/core/Popper";
+import { Popper, PopperPlacementType } from "@material-ui/core";
 
-interface ItemProps {
-  clickable?: boolean;
-  render: ({
-    anchorEl,
-    getChildProps,
-  }: {
-    anchorEl?: HTMLElement | null;
-    getChildProps?: Function;
-  }) => React.ReactNode;
+const callAll = (...fns: any) => (...arg: any) => fns.forEach((fn: any) => {
+  fn && fn(...arg)
+});
+
+interface MenuContextType {
+  anchorEle?: HTMLElement;
+  setAnchorEle: (anchorEle?: HTMLElement) => void;
 }
 
-const Item: FC<ItemProps> = ({ render, clickable = false }) => {
-  const [anchorEl, setAnchorEle] = useState<HTMLDivElement | null>(null);
+const MenuContext = React.createContext<MenuContextType>({
+  setAnchorEle: noop,
+});
 
-  const extraProps = clickable
-    ? {
-        onClick: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-          setAnchorEle(anchorEl ? null : event.currentTarget);
-        },
-        onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
-          if (event.key === "Enter") {
-            setAnchorEle(anchorEl ? null : event.currentTarget);
-          }
-        },
-      }
-    : {};
+export const MenuTrigger: React.FC = ({ children }) => {
+  const { setAnchorEle, anchorEle } = React.useContext(MenuContext);
 
-  const childrenWithProps = React.Children.map(
-    render({ anchorEl }),
-    (child) => {
-      // checking isValidElement is the safe way and avoids a typescript error too
-      if (React.isValidElement(child)) {
-        console.log(child.props);
+  const handleOnclick = (event: Event) => {
+    setAnchorEle(anchorEle ? undefined : event.target as HTMLElement)
+  }
 
-        const extra = clickable
-          ? {}
-          : {
-              onClick: (event: Event) => {
-                event.stopPropagation();
-              },
-            };
-        return React.cloneElement(child, extra);
-      }
-      return child;
+  const childrenWithProps = React.Children.map(children, child => {
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child, {
+        onClick: callAll(handleOnclick, child.props.onClick)
+      })
     }
-  );
 
+    return undefined
+  })
+
+
+  return <>{childrenWithProps}</>
+};
+
+interface MenuItemProps {
+  onClick?: (event: React.MouseEvent | React.KeyboardEvent) => void
+}
+
+export const MenuItem: React.FC<MenuItemProps> = ({ children, onClick }) => {
+  return <div tabIndex={0} role="menuitem" onClick={onClick} onKeyUp={event => {
+    if (event.key === 'Enter') {
+      onClick && onClick(event)
+    }
+  }}>{children}</div>;
+};
+
+export const Menu: React.FC = ({ children }) => {
+  const [anchorEle, setAnchorEle] = React.useState<HTMLElement>();
   return (
-    <div
-      style={{
-        cursor: clickable ? "pointer" : "initial",
+    <MenuContext.Provider
+      value={{
+        anchorEle,
+        setAnchorEle,
       }}
-      tabIndex={0}
-      role="menuitem"
-      {...extraProps}
     >
-      {childrenWithProps}
-    </div>
+      {children}
+    </MenuContext.Provider>
   );
 };
 
-interface MenuProps {
-  anchorEl?: HTMLElement | null;
-  placement?:
-    | "bottom-end"
-    | "bottom-start"
-    | "bottom"
-    | "left-end"
-    | "left-start"
-    | "left"
-    | "right-end"
-    | "right-start"
-    | "right"
-    | "top-end"
-    | "top-start"
-    | "top";
-  size?: "medium" | "small";
+interface MenuContextProps {
+  placement?: PopperPlacementType
 }
 
-export const Menu: FC<MenuProps> & {
-  Item: typeof Item;
-} = ({ children, anchorEl, placement = "top-end", size = "medium" }) => {
-  const menuRef = useRef<HTMLDivElement>(null);
-  const open = Boolean(anchorEl);
+export const MenuContent: React.FC<MenuContextProps> = ({ children, placement = 'top-end' }) => {
+  const menuRef = React.useRef<HTMLDivElement>(null)
+  const { anchorEle } = React.useContext(MenuContext);
 
-  useEffect(() => {
+  const open = Boolean(anchorEle);
+
+  React.useEffect(() => {
     if (open) {
-      menuRef.current?.focus();
+      menuRef.current?.focus()
     }
-  }, [open]);
-
+  }, [open])
+  
   return (
-    <Popper open={open} anchorEl={anchorEl} disablePortal placement={placement}>
-      <div
-        style={{
-          width: size === "medium" ? 300 : 200,
-        }}
-        role="menu"
-        tabIndex={-1}
-        ref={menuRef}
-        onKeyDown={(event) => event.stopPropagation()}
-      >
-        {children}
-      </div>
+    <Popper placement={placement} open={open} disablePortal anchorEl={anchorEle}>
+      <div tabIndex={-1} ref={menuRef} role="menu">{children}</div>
     </Popper>
   );
 };
-
-Menu.Item = Item;
