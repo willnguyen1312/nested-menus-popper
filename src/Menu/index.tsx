@@ -1,6 +1,5 @@
 import React from "react";
 import { noop } from "lodash-es";
-import { useEvent } from "react-use";
 
 import { Popper, PopperPlacementType } from "@material-ui/core";
 
@@ -22,17 +21,19 @@ export const MenuTrigger: React.FC = ({ children }) => {
   const { setAnchorEle, anchorEle } = React.useContext(MenuContext);
 
   const handleOnclick = (event: Event) => {
-    setAnchorEle(anchorEle ? undefined : (event.target as HTMLElement));
+    setAnchorEle(anchorEle ? void 0 : (event.target as HTMLElement));
   };
 
   const childrenWithProps = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
       return React.cloneElement(child, {
         onClick: callAll(handleOnclick, child.props.onClick),
+        "aria-haspopup": true,
+        "aria-expanded": Boolean(anchorEle),
       });
     }
 
-    return undefined;
+    return void 0;
   });
 
   return <>{childrenWithProps}</>;
@@ -40,19 +41,28 @@ export const MenuTrigger: React.FC = ({ children }) => {
 
 interface MenuItemProps {
   onClick?: (event: React.MouseEvent | React.KeyboardEvent) => void;
+  "aria-haspopup"?: boolean;
+  "aria-expanded"?: boolean;
+  role?: "menuitem" | "menuitemcheckbox" | "menuitemradio";
 }
 
-export const MenuItem: React.FC<MenuItemProps> = ({ children, onClick }) => {
+export const MenuItem: React.FC<MenuItemProps> = ({
+  children,
+  onClick,
+  role = "menuitem",
+  ...rest
+}) => {
   return (
     <div
       tabIndex={0}
-      role="menuitem"
+      role={role}
       onClick={onClick}
       onKeyUp={(event) => {
         if (event.key === "Enter") {
           onClick && onClick(event);
         }
       }}
+      {...rest}
     >
       {children}
     </div>
@@ -99,21 +109,41 @@ export const MenuContent: React.FC<MenuContextProps> = ({
     }
   }, [open]);
 
-  useEvent("click", (event) => {
-    const menu = menuRef.current;
+  React.useEffect(() => {
+    const clickHandler = (event: MouseEvent) => {
+      const menu = menuRef.current;
 
-    if (menu && !menu.contains(event.target as Node)) {
-      setAnchorEle(undefined);
-    }
-  });
+      if (menu && !menu.contains(event.target as Node)) {
+        setAnchorEle(void 0);
+      }
+    };
 
-  useEvent("keyup", (event) => {
-    const menu = menuRef.current;
+    window.addEventListener("click", clickHandler);
 
-    if (event.key === "Enter" && menu && !menu.contains(event.target as Node)) {
-      setAnchorEle(undefined);
-    }
-  });
+    return () => {
+      window.removeEventListener("click", clickHandler);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    const clickHandler = (event: KeyboardEvent) => {
+      const menu = menuRef.current;
+
+      if (
+        event.key === "Enter" &&
+        menu &&
+        !menu.contains(event.target as Node)
+      ) {
+        setAnchorEle(void 0);
+      }
+    };
+
+    window.addEventListener("keyup", clickHandler);
+
+    return () => {
+      window.removeEventListener("keyup", clickHandler);
+    };
+  }, []);
 
   return (
     <Popper
