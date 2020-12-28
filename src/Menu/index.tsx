@@ -1,6 +1,5 @@
 import React from "react";
 import { noop } from "lodash-es";
-import { useMountedState } from "react-use";
 
 import { Popper, PopperPlacementType } from "@material-ui/core";
 
@@ -18,10 +17,16 @@ const MenuContext = React.createContext<MenuContextType>({
   setAnchorEle: noop,
 });
 
-type GetTriggerElementProps = (options?: React.ButtonHTMLAttributes<HTMLElement>) => React.ButtonHTMLAttributes<HTMLElement>
+type GetTriggerElementProps = (
+  options?: React.ButtonHTMLAttributes<HTMLElement>
+) => React.ButtonHTMLAttributes<HTMLElement>;
 
 interface MenuTriggerProps {
-  render: ({ getTriggerElementProps }: { getTriggerElementProps: GetTriggerElementProps }) => React.ReactNode;
+  render: ({
+    getTriggerElementProps,
+  }: {
+    getTriggerElementProps: GetTriggerElementProps;
+  }) => React.ReactNode;
 }
 
 export const MenuTrigger: React.FC<MenuTriggerProps> = ({ render }) => {
@@ -31,7 +36,9 @@ export const MenuTrigger: React.FC<MenuTriggerProps> = ({ render }) => {
     setAnchorEle(anchorEle ? undefined : (event.target as HTMLElement));
   };
 
-  const getTriggerElementProps = (options: React.HTMLAttributes<HTMLElement> = {}) => {
+  const getTriggerElementProps = (
+    options: React.HTMLAttributes<HTMLElement> = {}
+  ) => {
     return {
       ...options,
       onClick: callAll(handleOnclick, options.onClick),
@@ -97,7 +104,6 @@ export const MenuContent: React.FC<MenuContextProps> = ({
 }) => {
   const menuRef = React.useRef<HTMLDivElement>(null);
   const { anchorEle, setAnchorEle } = React.useContext(MenuContext);
-  const checkMounted = useMountedState();
 
   const open = Boolean(anchorEle);
 
@@ -111,7 +117,7 @@ export const MenuContent: React.FC<MenuContextProps> = ({
     const clickHandler = (event: MouseEvent) => {
       const menu = menuRef.current;
 
-      if (checkMounted() && menu && !menu.contains(event.target as Node)) {
+      if (menu && !menu.contains(event.target as Node)) {
         setAnchorEle(undefined);
       }
     };
@@ -121,14 +127,13 @@ export const MenuContent: React.FC<MenuContextProps> = ({
     return () => {
       window.removeEventListener("click", clickHandler);
     };
-  }, []);
+  }, [setAnchorEle]);
 
   React.useEffect(() => {
     const clickHandler = (event: KeyboardEvent) => {
       const menu = menuRef.current;
 
       if (
-        checkMounted() &&
         event.key === "Enter" &&
         menu &&
         !menu.contains(event.target as Node)
@@ -142,7 +147,7 @@ export const MenuContent: React.FC<MenuContextProps> = ({
     return () => {
       window.removeEventListener("keyup", clickHandler);
     };
-  }, [checkMounted, setAnchorEle]);
+  }, [setAnchorEle]);
 
   return (
     <Popper
