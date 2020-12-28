@@ -1,3 +1,5 @@
+import React from "react";
+
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "./Menu";
 
 export default function SimplePopper() {
@@ -12,30 +14,36 @@ export default function SimplePopper() {
       }}
     >
       <Menu>
-        <MenuTrigger>
-          <button>Toggle</button>
-        </MenuTrigger>
+        <MenuTrigger
+          render={({ getTriggerElementProps }) => (
+            <button {...getTriggerElementProps()}>Toggle</button>
+          )}
+        />
         <MenuContent>
           <MenuItem>
             <h6>Hello there!!!</h6>
           </MenuItem>
 
           <Menu>
-            <MenuTrigger>
-              <MenuItem>
-                <h6>Hi there!!!</h6>
-              </MenuItem>
-            </MenuTrigger>
+            <MenuTrigger
+              render={({ getTriggerElementProps }) => (
+                <MenuItem {...getTriggerElementProps()}>
+                  <h6>Hi there!!!</h6>
+                </MenuItem>
+              )}
+            />
             <MenuContent placement="left-end">
               <MenuItem>
                 <h6>Hi there nested 1</h6>
               </MenuItem>
               <Menu>
-                <MenuTrigger>
-                  <MenuItem>
-                    <h6>Hi there there!!!</h6>
-                  </MenuItem>
-                </MenuTrigger>
+                <MenuTrigger
+                  render={({ getTriggerElementProps }) => (
+                    <MenuItem {...getTriggerElementProps()}>
+                      <h6>Hi there there!!!</h6>
+                    </MenuItem>
+                  )}
+                />
                 <MenuContent placement="left-end">
                   <MenuItem>
                     <h6>Hi there there nested 1</h6>
@@ -47,11 +55,13 @@ export default function SimplePopper() {
               </Menu>
 
               <Menu>
-                <MenuTrigger>
-                  <MenuItem>
-                    <h6>Hei there there!!!</h6>
-                  </MenuItem>
-                </MenuTrigger>
+                <MenuTrigger
+                  render={({ getTriggerElementProps }) => (
+                    <MenuItem {...getTriggerElementProps()}>
+                      <h6>Hei there there!!!</h6>
+                    </MenuItem>
+                  )}
+                />
                 <MenuContent placement="left-end">
                   <MenuItem>
                     <h6>Hei there there nested 1</h6>
@@ -65,11 +75,15 @@ export default function SimplePopper() {
           </Menu>
 
           <Menu>
-            <MenuTrigger>
-              <MenuItem>
-                <h6>Moi there!!!</h6>
-              </MenuItem>
-            </MenuTrigger>
+            <MenuTrigger
+              render={({ getTriggerElementProps }) => (
+                <MenuItem
+                  {...getTriggerElementProps()}
+                >
+                  <h6>Moi there!!!</h6>
+                </MenuItem>
+              )}
+            />
             <MenuContent placement="left-end">
               <MenuItem>
                 <h6>Moi there nested 1</h6>

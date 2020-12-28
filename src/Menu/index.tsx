@@ -1,5 +1,6 @@
 import React from "react";
 import { noop } from "lodash-es";
+import { useMountedState } from "react-use";
 
 import { Popper, PopperPlacementType } from "@material-ui/core";
 
@@ -17,36 +18,32 @@ const MenuContext = React.createContext<MenuContextType>({
   setAnchorEle: noop,
 });
 
-export const MenuTrigger: React.FC = ({ children }) => {
+type GetTriggerElementProps = (options?: React.ButtonHTMLAttributes<HTMLElement>) => React.ButtonHTMLAttributes<HTMLElement>
+
+interface MenuTriggerProps {
+  render: ({ getTriggerElementProps }: { getTriggerElementProps: GetTriggerElementProps }) => React.ReactNode;
+}
+
+export const MenuTrigger: React.FC<MenuTriggerProps> = ({ render }) => {
   const { setAnchorEle, anchorEle } = React.useContext(MenuContext);
 
   const handleOnclick = (event: Event) => {
-    setAnchorEle(anchorEle ? void 0 : (event.target as HTMLElement));
+    setAnchorEle(anchorEle ? undefined : (event.target as HTMLElement));
   };
 
-  const childrenWithProps = React.Children.map(children, (child) => {
-    if (React.isValidElement(child)) {
-      return React.cloneElement(child, {
-        onClick: callAll(handleOnclick, child.props.onClick),
-        "aria-haspopup": true,
-        "aria-expanded": Boolean(anchorEle),
-      });
-    }
+  const getTriggerElementProps = (options: React.HTMLAttributes<HTMLElement> = {}) => {
+    return {
+      ...options,
+      onClick: callAll(handleOnclick, options.onClick),
+      "aria-haspopup": true,
+      "aria-expanded": Boolean(anchorEle),
+    };
+  };
 
-    return void 0;
-  });
-
-  return <>{childrenWithProps}</>;
+  return <>{render({ getTriggerElementProps })}</>;
 };
 
-interface MenuItemProps {
-  onClick?: (event: React.MouseEvent | React.KeyboardEvent) => void;
-  "aria-haspopup"?: boolean;
-  "aria-expanded"?: boolean;
-  role?: "menuitem" | "menuitemcheckbox" | "menuitemradio";
-}
-
-export const MenuItem: React.FC<MenuItemProps> = ({
+export const MenuItem: React.FC<React.ButtonHTMLAttributes<HTMLElement>> = ({
   children,
   onClick,
   role = "menuitem",
@@ -59,7 +56,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
       onClick={onClick}
       onKeyUp={(event) => {
         if (event.key === "Enter") {
-          onClick && onClick(event);
+          onClick && onClick(event as any);
         }
       }}
       {...rest}
@@ -100,6 +97,7 @@ export const MenuContent: React.FC<MenuContextProps> = ({
 }) => {
   const menuRef = React.useRef<HTMLDivElement>(null);
   const { anchorEle, setAnchorEle } = React.useContext(MenuContext);
+  const checkMounted = useMountedState();
 
   const open = Boolean(anchorEle);
 
@@ -113,8 +111,8 @@ export const MenuContent: React.FC<MenuContextProps> = ({
     const clickHandler = (event: MouseEvent) => {
       const menu = menuRef.current;
 
-      if (menu && !menu.contains(event.target as Node)) {
-        setAnchorEle(void 0);
+      if (checkMounted() && menu && !menu.contains(event.target as Node)) {
+        setAnchorEle(undefined);
       }
     };
 
@@ -130,11 +128,12 @@ export const MenuContent: React.FC<MenuContextProps> = ({
       const menu = menuRef.current;
 
       if (
+        checkMounted() &&
         event.key === "Enter" &&
         menu &&
         !menu.contains(event.target as Node)
       ) {
-        setAnchorEle(void 0);
+        setAnchorEle(undefined);
       }
     };
 
@@ -143,7 +142,7 @@ export const MenuContent: React.FC<MenuContextProps> = ({
     return () => {
       window.removeEventListener("keyup", clickHandler);
     };
-  }, []);
+  }, [checkMounted, setAnchorEle]);
 
   return (
     <Popper
