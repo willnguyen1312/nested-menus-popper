@@ -1,5 +1,5 @@
+import { Theme, createStyles, makeStyles } from "@material-ui/core/styles";
 import React from "react";
-import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
 
 import { Menu } from "./Menu";
 
@@ -9,7 +9,7 @@ const useStyles = makeStyles((theme: Theme) =>
       padding: theme.spacing(1),
       backgroundColor: theme.palette.background.paper,
     },
-  })
+  }),
 );
 
 export default function SimplePopper() {

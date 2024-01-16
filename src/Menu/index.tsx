@@ -46,7 +46,7 @@ const Item: FC<ItemProps> = ({ render, clickable = false }) => {
         return React.cloneElement(child, extra);
       }
       return child;
-    }
+    },
   );
 
   return (
